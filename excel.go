@@ -45,7 +45,9 @@ func ReadExcel(filename string) (err error) {
 			}
 			continue
 		}
-		fmt.Println(row)
+		a := Activity{}
+		a.Parse(row, offset)
+		fmt.Println(a)
 	}
 	fmt.Printf("header: %v", offset)
 
