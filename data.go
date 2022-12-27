@@ -68,7 +68,7 @@ func (p *Project) Add(a *Activity) {
 }
 
 func (p *Project) Update() error {
-	const timeout = 5 * time.Second
+	const timeout = 2 * time.Second
 
 	done := make(chan bool, 1)
 	go func() {
@@ -98,13 +98,12 @@ func (p *Project) UpdateEvents() {
 		}
 	}
 
-	done := make(map[ID]bool)
-	for len(done) != len(p.activities) {
+	var done bool
+	for !done {
 		for _, a := range p.activities {
-			if done[a.ID] {
+			if a.start != nil && a.end != nil {
 				continue
 			}
-			fmt.Printf("updating ends for %v\n", a)
 			if len(a.Dependencies) == 0 {
 				a.start = p.start
 			}
@@ -114,15 +113,36 @@ func (p *Project) UpdateEvents() {
 			if a.end != nil && a.start == nil {
 				a.start = &Event{}
 				for _, id := range a.Dependencies {
-					if (p.activities[id]).end == nil {
-						(p.activities[id]).end = a.start
+					if p.activities[id].end != nil {
+						a.start = p.activities[id].end
+					} else {
+						p.activities[id].end = a.start
 					}
 				}
 			}
-			if a.start != nil && a.end != nil {
-				done[a.ID] = true
+		}
+		done = true
+		for _, a := range p.activities {
+			if a.start == nil || a.end == nil {
+				done = false
+				break
 			}
 		}
+	}
+}
+
+func (p *Project) DebugPrint() {
+	index := 1
+	for _, a := range p.activities {
+		if a.start.Number == 0 {
+			a.start.Number = index
+			index++
+		}
+		if a.end.Number == 0 {
+			a.end.Number = index
+			index++
+		}
+		fmt.Printf("Activity %s [%d->%d] len=%d\n", a.ID, a.start.Number, a.end.Number, a.Duration)
 	}
 }
 

@@ -29,5 +29,6 @@ func main() {
 		log.Fatalf("%v", err)
 	}
 
-	fmt.Printf("%v", proj)
+	fmt.Printf("%v\n", proj)
+	proj.DebugPrint()
 }
