@@ -8,11 +8,11 @@ import (
 	"github.com/xuri/excelize/v2"
 )
 
-func ReadExcel(filename string) (err error) {
+func ReadExcel(filename string) (proj Project, err error) {
 	var file *excelize.File
 	file, err = excelize.OpenFile(filename)
 	if err != nil {
-		return fmt.Errorf("unable to open excel file: %w", err)
+		return proj, fmt.Errorf("unable to open excel file: %w", err)
 	}
 	defer file.Close()
 
@@ -23,35 +23,33 @@ func ReadExcel(filename string) (err error) {
 		}
 	}
 	if len(currentSheet) == 0 {
-		return fmt.Errorf("no visible worksheets found in %s", filename)
+		return proj, fmt.Errorf("no visible worksheets found in %s", filename)
 	}
 
 	var rows *excelize.Rows
 	rows, err = file.Rows(currentSheet)
 	if err != nil {
-		return fmt.Errorf("could not iterate over rows in %s [%s]: %w", currentSheet, filename, err)
+		return proj, fmt.Errorf("could not iterate over rows in %s [%s]: %w", currentSheet, filename, err)
 	}
 
 	offset := NewOffset()
 	for rows.Next() {
 		row, err := rows.Columns()
 		if err != nil {
-			return fmt.Errorf("could not read row values: %w", err)
+			return proj, fmt.Errorf("could not read row values: %w", err)
 		}
 		if !offset.Valid() {
 			offset, err = headerOffset(row)
 			if err != nil {
-				return err
+				return proj, err
 			}
 			continue
 		}
-		a := Activity{}
+		a := &Activity{}
 		a.Parse(row, offset)
-		fmt.Println(a)
+		proj.Add(a)
 	}
-	fmt.Printf("header: %v", offset)
-
-	return nil
+	return proj, nil
 }
 
 type offset struct {

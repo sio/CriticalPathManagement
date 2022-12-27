@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"log"
 	"os"
 	"path/filepath"
@@ -16,8 +17,12 @@ func main() {
 	log.Printf("opening Excel file: %s\n", *filename)
 
 	var err error
-	err = ReadExcel(*filename)
+	var proj Project
+	proj, err = ReadExcel(*filename)
 	if err != nil {
 		log.Fatalf("%v", err)
 	}
+
+	proj.Update()
+	fmt.Printf("%v", proj)
 }
