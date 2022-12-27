@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -11,6 +12,7 @@ type ID string
 
 type Project struct {
 	activities map[ID]*Activity
+	events     []*Event
 	start      *Event
 	end        *Event
 }
@@ -129,6 +131,18 @@ func (p *Project) findEvents() {
 			}
 		}
 	}
+
+	seen := make(map[*Event]bool)
+	for _, a := range p.activities {
+		if !seen[a.start] {
+			p.events = append(p.events, a.start)
+			seen[a.start] = true
+		}
+		if !seen[a.end] {
+			p.events = append(p.events, a.end)
+			seen[a.end] = true
+		}
+	}
 }
 
 func (p *Project) DebugPrint() {
@@ -146,8 +160,7 @@ func (p *Project) DebugPrint() {
 	}
 }
 
-func (p *Project) Critical(id ID) bool {
-	activity := p.activities[id]
+func (p *Project) Critical(activity *Activity) bool {
 	if activity.start.EarlyTime != activity.start.LatestTime {
 		return false
 	}
@@ -168,6 +181,13 @@ func (p *Project) findCriticalPath() {
 	}
 
 	p.backwardPass(p.end)
+
+	sort.Slice(p.events, func(i, j int) bool {
+		return p.events[i].EarlyTime < p.events[j].EarlyTime
+	})
+	for index, event := range p.events {
+		event.Index = index + 1
+	}
 }
 
 func (p *Project) forwardPass(cursor *Event) {

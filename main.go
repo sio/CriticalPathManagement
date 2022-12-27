@@ -29,6 +29,13 @@ func main() {
 		log.Fatalf("%v", err)
 	}
 
+	dest := strings.TrimSuffix(*filename, filepath.Ext(*filename)) + ".svg"
+	log.Printf("rendering graph to %s\n", dest)
+	err = proj.Render(dest)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	fmt.Printf("%v\n", proj)
 	proj.DebugPrint()
 }
