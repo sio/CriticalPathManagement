@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"fmt"
 	"log"
 	"strconv"
@@ -52,12 +51,12 @@ func (p *Project) Render(path string) (err error) {
 		}
 	}
 
-	var buf bytes.Buffer
-	err = gv.Render(graph, "dot", &buf)
-	if err != nil {
-		return fmt.Errorf("failed to render to dot: %w", err)
-	}
-	fmt.Println(buf.String())
+	//var buf bytes.Buffer
+	//err = gv.Render(graph, "dot", &buf)
+	//if err != nil {
+	//	return fmt.Errorf("failed to render to dot: %w", err)
+	//}
+	//fmt.Println(buf.String())
 
 	err = gv.RenderFilename(graph, graphviz.SVG, path)
 	if err != nil {

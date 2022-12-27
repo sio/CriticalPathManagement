@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"log"
 )
 
 type ID string
@@ -117,9 +118,8 @@ func (p *Project) findEvents() {
 				for _, id := range a.Dependencies {
 					if p.activities[id].end != nil {
 						a.start = p.activities[id].end
-					} else {
-						p.activities[id].end = a.start
 					}
+					p.activities[id].end = a.start
 				}
 			}
 		}
@@ -132,6 +132,8 @@ func (p *Project) findEvents() {
 		}
 	}
 
+	p.straightenLooseEnds(p.end)
+
 	seen := make(map[*Event]bool)
 	for _, a := range p.activities {
 		if !seen[a.start] {
@@ -141,6 +143,24 @@ func (p *Project) findEvents() {
 		if !seen[a.end] {
 			p.events = append(p.events, a.end)
 			seen[a.end] = true
+		}
+	}
+}
+
+func (p *Project) straightenLooseEnds(cursor *Event) {
+	for _, a := range p.activities {
+		if a.end != cursor {
+			continue
+		}
+		for _, id := range a.Dependencies {
+			dep := p.activities[id]
+			if dep.end != a.start {
+				log.Printf("fixing a loose end on activity %s\n", dep.ID)
+				dep.end = a.start
+			}
+		}
+		if a.start != p.start {
+			p.straightenLooseEnds(a.start)
 		}
 	}
 }
