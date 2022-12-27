@@ -10,14 +10,13 @@ import (
 type ID string
 
 type Project struct {
-	events     []*Event
 	activities map[ID]*Activity
 	start      *Event
 	end        *Event
 }
 
 type Event struct {
-	Number     int
+	Index      int
 	EarlyTime  int
 	LatestTime int
 }
@@ -57,7 +56,7 @@ func (a *Activity) Parse(row []string, offset offset) (err error) {
 }
 
 func (p Project) String() string {
-	return fmt.Sprintf("<Project: %d activities, %d events>", len(p.activities), len(p.events))
+	return fmt.Sprintf("<Project: %d activities>", len(p.activities))
 }
 
 func (p *Project) Add(a *Activity) {
@@ -72,7 +71,8 @@ func (p *Project) Update() error {
 
 	done := make(chan bool, 1)
 	go func() {
-		p.UpdateEvents()
+		p.findEvents()
+		p.findCriticalPath()
 		done <- true
 	}()
 	select {
@@ -83,7 +83,7 @@ func (p *Project) Update() error {
 	}
 }
 
-func (p *Project) UpdateEvents() {
+func (p *Project) findEvents() {
 	if p.start == nil {
 		p.start = &Event{}
 	}
@@ -134,17 +134,64 @@ func (p *Project) UpdateEvents() {
 func (p *Project) DebugPrint() {
 	index := 1
 	for _, a := range p.activities {
-		if a.start.Number == 0 {
-			a.start.Number = index
+		if a.start.Index == 0 {
+			a.start.Index = index
 			index++
 		}
-		if a.end.Number == 0 {
-			a.end.Number = index
+		if a.end.Index == 0 {
+			a.end.Index = index
 			index++
 		}
-		fmt.Printf("Activity %s [%d->%d] len=%d\n", a.ID, a.start.Number, a.end.Number, a.Duration)
+		fmt.Printf("Activity %s [%v->%v] len=%d\n", a.ID, a.start, a.end, a.Duration)
 	}
 }
 
-func (p *Project) FindCriticalPath() {
+func (p *Project) Critical(id ID) bool {
+	activity := p.activities[id]
+	if activity.start.EarlyTime != activity.start.LatestTime {
+		return false
+	}
+	if activity.end.EarlyTime != activity.end.LatestTime {
+		return false
+	}
+	if activity.Duration != activity.end.EarlyTime-activity.start.EarlyTime {
+		return false
+	}
+	return true
+}
+
+func (p *Project) findCriticalPath() {
+	p.forwardPass(p.start)
+
+	for _, a := range p.activities {
+		a.end.LatestTime = p.end.EarlyTime
+	}
+
+	p.backwardPass(p.end)
+}
+
+func (p *Project) forwardPass(cursor *Event) {
+	for _, a := range p.activities {
+		if a.start != cursor {
+			continue
+		}
+		value := a.start.EarlyTime + a.Duration
+		if value > a.end.EarlyTime {
+			a.end.EarlyTime = value
+		}
+		p.forwardPass(a.end)
+	}
+}
+
+func (p *Project) backwardPass(cursor *Event) {
+	for _, a := range p.activities {
+		if a.end != cursor {
+			continue
+		}
+		value := a.end.LatestTime - a.Duration
+		if value < a.start.LatestTime {
+			a.start.LatestTime = value
+		}
+		p.backwardPass(a.start)
+	}
 }
