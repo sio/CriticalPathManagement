@@ -53,7 +53,7 @@ func (p *Project) Render(path string) (err error) {
 	}
 	fmt.Println(buf.String())
 
-	err = gv.RenderFilename(graph, graphviz.PNG, path)
+	err = gv.RenderFilename(graph, graphviz.SVG, path)
 	if err != nil {
 		return fmt.Errorf("failed to render: %w", err)
 	}
