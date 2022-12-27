@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"log"
 	"os"
 	"path/filepath"
@@ -37,4 +36,5 @@ func main() {
 	}
 
 	proj.DebugPrint()
+	log.Printf("minimum project duration: %d", proj.end.EarlyTime)
 }
