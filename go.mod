@@ -22,4 +22,4 @@ require (
 	golang.org/x/text v0.3.7 // indirect
 )
 
-replace github.com/goccy/go-graphviz => ../go-graphviz
+replace github.com/goccy/go-graphviz => ../go-graphviz // https://github.com/goccy/go-graphviz/pull/62
