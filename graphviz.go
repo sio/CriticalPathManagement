@@ -10,6 +10,8 @@ import (
 	"github.com/goccy/go-graphviz/cgraph"
 )
 
+const criticalPathColor = "red"
+
 func (p *Project) Render(path string) (err error) {
 	gv := graphviz.New()
 	graph, err := gv.Graph()
@@ -32,8 +34,10 @@ func (p *Project) Render(path string) (err error) {
 			return fmt.Errorf("could not add node: %w", err)
 		}
 		if event.EarlyTime == event.LatestTime {
-			nodes[event].SetColor("red")
+			nodes[event].SetColor(criticalPathColor)
+			nodes[event].SetFontColor(criticalPathColor)
 		}
+		nodes[event].SetShape(cgraph.CircleShape)
 	}
 	for _, activity := range p.activities {
 		edge, err := graph.CreateEdge(string(activity.ID), nodes[activity.start], nodes[activity.end])
@@ -41,8 +45,10 @@ func (p *Project) Render(path string) (err error) {
 			return fmt.Errorf("could not add edge: %w", err)
 		}
 		edge.SetLabel(string(activity.ID))
+		//edge.SetMinLen(activity.Duration)
 		if p.Critical(activity) {
-			edge.SetColor("red")
+			edge.SetColor(criticalPathColor)
+			edge.SetFontColor(criticalPathColor)
 		}
 	}
 
