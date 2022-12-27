@@ -125,3 +125,6 @@ func (p *Project) UpdateEvents() {
 		}
 	}
 }
+
+func (p *Project) FindCriticalPath() {
+}

@@ -18,11 +18,16 @@ func main() {
 
 	var err error
 	var proj Project
+
 	proj, err = ReadExcel(*filename)
 	if err != nil {
 		log.Fatalf("%v", err)
 	}
 
-	proj.Update()
+	err = proj.Update()
+	if err != nil {
+		log.Fatalf("%v", err)
+	}
+
 	fmt.Printf("%v", proj)
 }
