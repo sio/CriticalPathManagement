@@ -13,6 +13,8 @@ func main() {
 	filename := flag.String("f", defaultSource, "path to Excel file with project data")
 	flag.Parse()
 
+	os.Chdir(filepath.Dir(*filename))
+
 	log.Printf("opening Excel file: %s\n", *filename)
 
 	var err error
