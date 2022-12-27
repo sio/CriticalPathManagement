@@ -2,11 +2,11 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"sort"
 	"strconv"
 	"strings"
 	"time"
-	"log"
 )
 
 type ID string
