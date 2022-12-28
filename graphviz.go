@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"log"
+	"os"
+	"path/filepath"
 	"strconv"
 
 	"github.com/goccy/go-graphviz"
@@ -51,16 +53,26 @@ func (p *Project) Render(path string) (err error) {
 		}
 	}
 
-	//var buf bytes.Buffer
-	//err = gv.Render(graph, "dot", &buf)
-	//if err != nil {
-	//	return fmt.Errorf("failed to render to dot: %w", err)
-	//}
-	//fmt.Println(buf.String())
+	// go-graphviz has a bug: it does not write a file if path is not in current directory // TODO
+	// Workaround below (changing to target directory and writing file via relative path)
+	var origCwd string
+	origCwd, err = os.Getwd()
+	if err != nil {
+		return err
+	}
+	err = os.Chdir(filepath.Dir(path))
+	if err != nil {
+		return err
+	}
 
-	err = gv.RenderFilename(graph, graphviz.SVG, path)
+	err = gv.RenderFilename(graph, graphviz.SVG, filepath.Base(path))
 	if err != nil {
 		return fmt.Errorf("failed to render: %w", err)
+	}
+
+	err = os.Chdir(origCwd)
+	if err != nil {
+		return err
 	}
 	return nil
 }
