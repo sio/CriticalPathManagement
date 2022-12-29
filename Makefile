@@ -1,8 +1,17 @@
 GO?=go
 
+GOOS?=$(shell $(GO) env GOOS)
+GOARCH?=$(shell $(GO) env GOARCH)
+export GOOS
+export GOARCH
+
+ifeq ($(GOOS),windows)
+GOFLAGS+=-ldflags -H=windowsgui
+endif
+
 .PHONY: build
 build:  ## build an executable
-	$(GO) build .
+	$(GO) build $(GOFLAGS) .
 
 .PHONY: run2
 run2:  ## run with test data
