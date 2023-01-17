@@ -18,7 +18,12 @@ func ReadExcel(filename string) (proj Project, err error) {
 
 	var currentSheet string
 	for _, sheetName := range file.GetSheetList() {
-		if file.GetSheetVisible(sheetName) {
+		var visible bool
+		visible, err = file.GetSheetVisible(sheetName)
+		if err != nil {
+			continue
+		}
+		if visible {
 			currentSheet = sheetName
 		}
 	}
